@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cloud Kitchen — Панель администратора</title>
+<style>
+  :root{
+    --bg:#1e1e1e;
+    --panel:#2a2a2a;
+    --panel2:#333;
+    --text:#eee;
+    --muted:#9aa0a6;
+    --accent:#f2c94c;
+    --accent-hover:#e0b83a;
+    --danger:#e74c3c;
+    --border:#3d3d3d;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  .hidden{display:none !important;}
+
+  /* ---------- Авторизация / Регистрация ---------- */
+  .auth-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .auth-card{
+    width:100%;
+    max-width:520px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:36px 34px;
+  }
+  .auth-card h1{
+    color:var(--accent);
+    font-size:32px;
+    margin-bottom:8px;
+  }
+  .auth-card .sub{
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:22px;
+  }
+  .form-group{margin-bottom:16px;}
+  .form-group label{
+    display:block;
+    font-size:14px;
+    margin-bottom:6px;
+    color:#ddd;
+  }
+  .form-group input,
+  .form-group select{
+    width:100%;
+    padding:11px 12px;
+    background:#3a3a3a;
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+    font-size:14px;
+    outline:none;
+  }
+  .form-group input:focus,
+  .form-group select:focus{
+    border-color:var(--accent);
+  }
+  .hint{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:4px;
+  }
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:14px 0 20px;
+    font-size:14px;
+  }
+  .checkbox-row input{width:18px;height:18px;accent-color:var(--accent);}
+  .btn{
+    display:inline-block;
+    padding:11px 22px;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .btn-primary{background:var(--accent);color:#1e1e1e;}
+  .btn-primary:hover{background:var(--accent-hover);}
+  .btn-link{
+    background:none;border:none;color:var(--accent);
+    font-size:15px;cursor:pointer;text-decoration:underline;
+  }
+  .btn-sm{padding:7px 14px;font-size:13px;}
+  .btn-danger{background:var(--danger);color:#fff;}
+  .actions-row{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+  .error-box{
+    background:#4a2626;
+    border:1px solid var(--danger);
+    color:#ffb3b3;
+    padding:10px 12px;
+    border-radius:8px;
+    font-size:13px;
+    margin-bottom:14px;
+  }
+
+  /* ---------- Панель администратора ---------- */
+  .app{
+    display:flex;
+    min-height:100vh;
+  }
+  .sidebar{
+    width:250px;
+    background:#232323;
+    border-right:1px solid var(--border);
+    padding:24px 16px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+  }
+  .sidebar .logo{
+    color:var(--accent);
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:28px;
+    padding-left:8px;
+  }
+  .nav-item{
+    display:block;
+    width:100%;
+    text-align:left;
+    padding:11px 14px;
+    margin-bottom:6px;
+    border-radius:8px;
+    background:transparent;
+    color:#ccc;
+    border:none;
+    font-size:14px;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .nav-item:hover{background:#2e2e2e;}
+  .nav-item.active{
+    background:var(--accent);
+    color:#1e1e1e;
+    font-weight:600;
+  }
+  .sidebar .logout{
+    margin-top:auto;
+    color:#ff8f8f;
+  }
+  .main{
+    flex:1;
+    padding:28px 34px;
+    overflow:auto;
+  }
+  .main h2{
+    color:var(--accent);
+    font-size:26px;
+    margin-bottom:6px;
+  }
+  .main .sub{
+    color:var(--muted);
+    font-size:14px;
+    margin-bottom:22px;
+  }
+
+  /* Фильтры */
+  .filter-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    margin-bottom:24px;
+  }
+  .filter-card h3{
+    color:var(--accent);
+    font-size:17px;
+    margin-bottom:16px;
+  }
+  .filter-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:14px;
+  }
+  .filter-grid .form-group{margin-bottom:0;}
+  .filter-actions{
+    margin-top:16px;
+    display:flex;
+    gap:14px;
+    align-items:center;
+  }
+
+  /* Карточки статистики */
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:16px;
+    margin-bottom:24px;
+  }
+  .stat-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .stat-card .label{
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .stat-card .value{
+    font-size:26px;
+    font-weight:700;
+    color:var(--accent);
+  }
+
+  /* Таблицы */
+  .table-card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px 22px;
+    margin-bottom:24px;
+  }
+  .table-card .table-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .table-card h3{
+    color:var(--accent);
+    font-size:17px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  th,td{
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  th{
+    color:#bbb;
+    font-weight:600;
+    background:#2e2e2e;
+  }
+  tr:hover td{background:#2d2d2d;}
+  .empty-row{
+    text-align:center;
+    color:var(--muted);
+    padding:22px;
+  }
+
+  /* Модальное окно */
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:100;
+  }
+  .modal{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    width:100%;
+    max-width:460px;
+    padding:26px 28px;
+  }
+  .modal h3{
+    color:var(--accent);
+    margin-bottom:18px;
+    font-size:19px;
+  }
+  .modal-actions{
+    display:flex;
+    gap:12px;
+    margin-top:20px;
+    justify-content:flex-end;
+  }
+  .btn-ghost{
+    background:transparent;
+    color:#ccc;
+    border:1px solid var(--border);
+  }
+  .btn-ghost:hover{background:#2e2e2e;}
+
+  @media(max-width:860px){
+    .app{flex-direction:column;}
+    .sidebar{
+      width:100%;
+      flex-direction:row;
+      flex-wrap:wrap;
+      align-items:center;
+      padding:14px;
+      gap:6px;
+    }
+    .sidebar .logo{margin:0 16px 0 0;}
+    .nav-item{width:auto;margin-bottom:0;}
+    .sidebar .logout{margin-top:0;margin-left:auto;}
+    .main{padding:20px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================== СТРАНИЦА 1: ВХОД ================== -->
+<div id="page-login" class="auth-wrap">
+  <div class="auth-card">
+    <h1>Вход</h1>
+    <p class="sub">Введите логин и пароль. При ошибке покажем уведомление ниже.</p>
+
+    <div id="login-error" class="error-box hidden"></div>
+
+    <div class="form-group">
+      <label for="login-user">Логин</label>
+      <input id="login-user" type="text" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label for="login-pass">Пароль</label>
+      <input id="login-pass" type="password" autocomplete="current-password" />
+    </div>
+    <div class="checkbox-row">
+      <input id="login-remember" type="checkbox" />
+      <label for="login-remember">Запомнить меня на этом устройстве</label>
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-primary" onclick="doLogin()">Войти</button>
+      <button class="btn-link" onclick="showPage('register')">Создать аккаунт</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== СТРАНИЦА 2: РЕГИСТРАЦИЯ ================== -->
+<div id="page-register" class="auth-wrap hidden">
+  <div class="auth-card">
+    <h1>Регистрация</h1>
+    <p class="sub">Все поля обязательны для заполнения.</p>
+
+    <div id="reg-error" class="error-box hidden"></div>
+
+    <div class="form-group">
+      <label for="reg-user">Логин</label>
+      <input id="reg-user" type="text" />
+      <div class="hint">Пример: user2025. Только латиница и цифры, до 26 символов.</div>
+    </div>
+    <div class="form-group">
+      <label for="reg-pass">Пароль</label>
+      <input id="reg-pass" type="password" />
+      <div class="hint">Минимум 8 символов.</div>
+    </div>
+    <div class="form-group">
+      <label for="reg-fio">ФИО</label>
+      <input id="reg-fio" type="text" />
+      <div class="hint">Разрешены: буквы (рус/лат), пробел, дефис.</div>
+    </div>
+    <div class="form-group">
+      <label for="reg-phone">Телефон</label>
+      <input id="reg-phone" type="text" placeholder="8(999)123-45-67" />
+      <div class="hint">Формат: 8(XXX)XXX-XX-XX</div>
+    </div>
+    <div class="form-group">
+      <label for="reg-email">E-mail</label>
+      <input id="reg-email" type="email" />
+    </div>
+    <div class="checkbox-row">
+      <input id="reg-consent" type="checkbox" />
+      <label for="reg-consent">Я принимаю условия обработки персональных данных</label>
+    </div>
+    <div class="actions-row">
+      <button class="btn btn-primary" onclick="doRegister()">Создать аккаунт</button>
+      <button class="btn-link" onclick="showPage('login')">У меня уже есть аккаунт</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================== ПАНЕЛЬ АДМИНИСТРАТОРА ================== -->
+<div id="page-app" class="app hidden">
+  <aside class="sidebar">
+    <div class="logo">Cloud Kitchen</div>
+    <button class="nav-item active" data-tab="sales" onclick="switchTab('sales')">Учёт продаж и отчётность</button>
+    <button class="nav-item" data-tab="dishes" onclick="switchTab('dishes')">Справочник блюд</button>
+    <button class="nav-item" data-tab="ingredients" onclick="switchTab('ingredients')">Справочник ингредиентов</button>
+    <button class="nav-item" data-tab="staff" onclick="switchTab('staff')">Сотрудники</button>
+    <button class="nav-item" data-tab="tariffs" onclick="switchTab('tariffs')">Тарифы и скидки</button>
+    <button class="nav-item logout" onclick="logout()">Выйти</button>
+  </aside>
+
+  <main class="main">
+
+    <!-- ---------- Страница 3: Учёт продаж и отчётность ---------- -->
+    <section id="tab-sales">
+      <h2>Учёт продаж и отчётность</h2>
+      <p class="sub">Фильтры применяются на стороне сервера при отправке формы.</p>
+
+      <div class="filter-card">
+        <h3>Фильтр данных</h3>
+        <div class="filter-grid">
+          <div class="form-group">
+            <label for="f-date-from">Период с</label>
+            <input id="f-date-from" type="date" />
+          </div>
+          <div class="form-group">
+            <label for="f-date-to">по</label>
+            <input id="f-date-to" type="date" />
+          </div>
+          <div class="form-group">
+            <label for="f-dish">Блюдо</label>
+            <select id="f-dish"></select>
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-primary btn-sm" onclick="applyFilters()">Применить</button>
+          <button class="btn-link" onclick="resetFilters()">Сбросить</button>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="sales-stats"></div>
+
+      <div class="table-card">
+        <div class="table-head">
+          <h3>Заказы</h3>
+          <span class="hint" id="sales-count"></span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>№</th><th>Дата</th><th>Блюдо</th><th>Кол-во</th>
+              <th>Сумма</th><th>Себестоимость</th><th>Прибыль</th>
+            </tr>
+          </thead>
+          <tbody id="sales-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- Справочник блюд ---------- -->
+    <section id="tab-dishes" class="hidden">
+      <h2>Справочник блюд</h2>
+      <p class="sub">Управление ассортиментом кухни.</p>
+      <div class="table-card">
+        <div class="table-head">
+          <h3>Блюда</h3>
+          <button class="btn btn-primary btn-sm" onclick="openDishModal()">+ Добавить блюдо</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Название</th><th>Категория</th><th>Цена, ₽</th><th>Себестоимость, ₽</th><th></th></tr>
+          </thead>
+          <tbody id="dishes-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- Справочник ингредиентов ---------- -->
+    <section id="tab-ingredients" class="hidden">
+      <h2>Справочник ингредиентов</h2>
+      <p class="sub">Складские позиции и их стоимость.</p>
+      <div class="table-card">
+        <div class="table-head">
+          <h3>Ингредиенты</h3>
+          <button class="btn btn-primary btn-sm" onclick="openIngredientModal()">+ Добавить ингредиент</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Название</th><th>Ед. изм.</th><th>Цена за ед., ₽</th><th></th></tr>
+          </thead>
+          <tbody id="ingredients-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- Сотрудники ---------- -->
+    <section id="tab-staff" class="hidden">
+      <h2>Сотрудники</h2>
+      <p class="sub">Эффективность персонала кухни.</p>
+      <div class="table-card">
+        <div class="table-head">
+          <h3>Список сотрудников</h3>
+          <button class="btn btn-primary btn-sm" onclick="openStaffModal()">+ Добавить сотрудника</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>ФИО</th><th>Должность</th><th>Заказов</th><th>Эффективность</th><th></th></tr>
+          </thead>
+          <tbody id="staff-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ---------- Тарифы и скидки ---------- -->
+    <section id="tab-tariffs" class="hidden">
+      <h2>Тарифы и скидки</h2>
+      <p class="sub">Настройка тарифных планов и скидок.</p>
+      <div class="table-card">
+        <div class="table-head">
+          <h3>Скидки</h3>
+          <button class="btn btn-primary btn-sm" onclick="openDiscountModal()">+ Добавить скидку</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Название</th><th>Тип</th><th>Значение</th><th>Активна</th><th></th></tr>
+          </thead>
+          <tbody id="discounts-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ================== МОДАЛЬНОЕ ОКНО ================== -->
+<div id="modal-backdrop" class="modal-backdrop hidden">
+  <div class="modal">
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" id="modal-save" onclick="saveModal()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   ИМИТАЦИЯ БАЗЫ ДАННЫХ (localStorage)
+   ========================================================= */
+const DB_KEY = 'cloud_kitchen_db_v1';
+
+const defaultDB = {
+  users: [
+    { login: 'admin', password: 'admin123', fio: 'Администратор', phone: '', email: '' }
+  ],
+  dishes: [
+    { id: 1, name: 'Бургер классический', category: 'Бургеры', price: 450, cost: 210 },
+    { id: 2, name: 'Паста карбонара', category: 'Паста', price: 520, cost: 240 },
+    { id: 3, name: 'Салат Цезарь', category: 'Салаты', price: 390, cost: 160 },
+    { id: 4, name: 'Суп Том Ям', category: 'Супы', price: 480, cost: 220 }
+  ],
+  ingredients: [
+    { id: 1, name: 'Булочка для бургера', unit: 'шт', price: 25 },
+    { id: 2, name: 'Куриное филе', unit: 'кг', price: 380 },
+    { id: 3, name: 'Сливки 33%', unit: 'л', price: 320 },
+    { id: 4, name: 'Пармезан', unit: 'кг', price: 1200 }
+  ],
+  staff: [
+    { id: 1, fio: 'Иванов Иван', position: 'Повар', orders: 120, efficiency: 92 },
+    { id: 2, fio: 'Петрова Анна', position: 'Повар', orders: 98, efficiency: 88 },
+    { id: 3, fio: 'Сидоров Пётр', position: 'Курьер', orders: 145, efficiency: 95 }
+  ],
+  discounts: [
+    { id: 1, name: 'Скидка 10% на первый заказ', type: 'percent', value: 10, active: true },
+    { id: 2, name: 'Фиксированная скидка 100 ₽', type: 'fixed', value: 100, active: true },
+    { id: 3, name: 'Промо "Летнее меню"', type: 'percent', value: 15, active: false }
+  ],
+  sales: []
+};
+
+/* Генерация демо-заказов на последние 30 дней */
+function generateSales(db){
+  const dishes = db.dishes;
+  const sales = [];
+  let id = 1;
+  const today = new Date();
+  for (let d = 0; d < 30; d++){
+    const day = new Date(today);
+    day.setDate(today.getDate() - d);
+    const count = 1 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < count; i++){
+      const dish = dishes[Math.floor(Math.random() * dishes.length)];
+      const qty = 1 + Math.floor(Math.random() * 3);
+      const sum = dish.price * qty;
+      const cost = dish.cost * qty;
+      sales.push({
+        id: id++,
+        date: day.toISOString().slice(0, 10),
+        dishId: dish.id,
+        dishName: dish.name,
+        qty,
+        sum,
+        cost,
+        profit: sum - cost
+      });
+    }
+  }
+  return sales;
+}
+
+function loadDB(){
+  let db;
+  try{
+    db = JSON.parse(localStorage.getItem(DB_KEY));
+  }catch(e){ db = null; }
+  if (!db || !db.users){
+    db = JSON.parse(JSON.stringify(defaultDB));
+    db.sales = generateSales(db);
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+  }
+  return db;
+}
+function saveDB(db){
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+let DB = loadDB();
+
+/* =========================================================
+   НАВИГАЦИЯ
+   ========================================================= */
+function showPage(name){
+  ['login','register','app'].forEach(p => {
+    document.getElementById('page-' + p).classList.add('hidden');
+  });
+  if (name === 'app'){
+    document.getElementById('page-app').classList.remove('hidden');
+  } else {
+    document.getElementById('page-' + name).classList.remove('hidden');
+  }
+  clearAuthErrors();
+}
+
+function clearAuthErrors(){
+  document.getElementById('login-error').classList.add('hidden');
+  document.getElementById('reg-error').classList.add('hidden');
+}
+
+/* =========================================================
+   АВТОРИЗАЦИЯ
+   ========================================================= */
+function doLogin(){
+  const login = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  const user = DB.users.find(u => u.login === login && u.password === pass);
+  if (!user){
+    err.textContent = 'Неверный логин или пароль. Проверьте данные и попробуйте снова.';
+    err.classList.remove('hidden');
+    return;
+  }
+  err.classList.add('hidden');
+  if (document.getElementById('login-remember').checked){
+    localStorage.setItem('ck_remember', login);
+  } else {
+    localStorage.removeItem('ck_remember');
+  }
+  document.getElementById('login-pass').value = '';
+  showPage('app');
+  switchTab('sales');
+}
+
+function doRegister(){
+  const login = document.getElementById('reg-user').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const fio = document.getElementById('reg-fio').value.trim();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const consent = document.getElementById('reg-consent').checked;
+  const err = document.getElementById('reg-error');
+
+  const fail = (msg) => { err.textContent = msg; err.classList.remove('hidden'); };
+
+  if (!/^[A-Za-z0-9]{1,26}$/.test(login)) return fail('Логин: только латиница и цифры, до 26 символов.');
+  if (pass.length < 8) return fail('Пароль должен содержать минимум 8 символов.');
+  if (!/^[А-Яа-яЁёA-Za-z\s\-]+$/.test(fio)) return fail('ФИО: разрешены буквы, пробел и дефис.');
+  if (!/^8\(\d{3}\)\d{3}-\d{2}-\d{2}$/.test(phone)) return fail('Телефон в формате 8(XXX)XXX-XX-XX.');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Введите корректный e-mail.');
+  if (!consent) return fail('Необходимо согласие на обработку персональных данных.');
+  if (DB.users.some(u => u.login === login)) return fail('Пользователь с таким логином уже существует.');
+
+  DB.users.push({ login, password: pass, fio, phone, email });
+  saveDB(DB);
+  err.classList.add('hidden');
+  alert('Аккаунт успешно создан. Теперь вы можете войти.');
+  showPage('login');
+  document.getElementById('login-user').value = login;
+}
+
+function logout(){
+  showPage('login');
+}
+
+/* =========================================================
+   ВКЛАДКИ ПАНЕЛИ
+   ========================================================= */
+function switchTab(tab){
+  ['sales','dishes','ingredients','staff','tariffs'].forEach(t => {
+    document.getElementById('tab-' + t).classList.add('hidden');
+  });
+  document.getElementById('tab-' + tab).classList.remove('hidden');
+  document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+
+  if (tab === 'sales') renderSales();
+  if (tab === 'dishes') renderDishes();
+  if (tab === 'ingredients') renderIngredients();
+  if (tab === 'staff') renderStaff();
+  if (tab === 'tariffs') renderDiscounts();
+}
+
+/* =========================================================
+   УЧЁТ ПРОДАЖ И ОТЧЁТНОСТЬ
+   ========================================================= */
+function fillDishFilter(){
+  const sel = document.getElementById('f-dish');
+  sel.innerHTML = '<option value="">Все блюда</option>';
+  DB.dishes.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.name;
+    sel.appendChild(opt);
+  });
+}
+
+function applyFilters(){
+  renderSales();
+}
+
+function resetFilters(){
+  document.getElementById('f-date-from').value = '';
+  document.getElementById('f-date-to').value = '';
+  document.getElementById('f-dish').value = '';
+  renderSales();
+}
+
+function getFilteredSales(){
+  const from = document.getElementById('f-date-from').value;
+  const to = document.getElementById('f-date-to').value;
+  const dishId = document.getElementById('f-dish').value;
+  return DB.sales.filter(s => {
+    if (from && s.date < from) return false;
+    if (to && s.date > to) return false;
+    if (dishId && String(s.dishId) !== String(dishId)) return false;
+    return true;
+  });
+}
+
+function renderSales(){
+  fillDishFilter();
+  const sales = getFilteredSales().sort((a,b) => b.date.localeCompare(a.date) || b.id - a.id);
+
+  const totalOrders = sales.length;
+  const totalSum = sales.reduce((acc,s) => acc + s.sum, 0);
+  const totalCost = sales.reduce((acc,s) => acc + s.cost, 0);
+  const totalProfit = totalSum - totalCost;
+
+  document.getElementById('sales-stats').innerHTML = `
+    <div class="stat-card"><div class="label">Заказов</div><div class="value">${totalOrders}</div></div>
+    <div class="stat-card"><div class="label">Выручка, ₽</div><div class="value">${totalSum.toLocaleString('ru-RU')}</div></div>
+    <div class="stat-card"><div class="label">Себестоимость, ₽</div><div class="value">${totalCost.toLocaleString('ru-RU')}</div></div>
+    <div class="stat-card"><div class="label">Прибыль, ₽</div><div class="value">${totalProfit.toLocaleString('ru-RU')}</div></div>
+  `;
+  document.getElementById('sales-count').textContent = `Найдено: ${sales.length}`;
+
+  const tbody = document.getElementById('sales-tbody');
+  if (!sales.length){
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Нет данных за выбранный период</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sales.map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${formatDate(s.date)}</td>
+      <td>${escapeHtml(s.dishName)}</td>
+      <td>${s.qty}</td>
+      <td>${s.sum.toLocaleString('ru-RU')}</td>
+      <td>${s.cost.toLocaleString('ru-RU')}</td>
+      <td>${s.profit.toLocaleString('ru-RU')}</td>
+    </tr>
+  `).join('');
+}
+
+function formatDate(iso){
+  const [y,m,d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+/* =========================================================
+   СПРАВОЧНИК БЛЮД
+   ========================================================= */
+function renderDishes(){
+  const tbody = document.getElementById('dishes-tbody');
+  if (!DB.dishes.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Справочник пуст</td></tr>';
+    return;
+  }
+  tbody.innerHTML = DB.dishes.map(d => `
+    <tr>
+      <td>${d.id}</td>
+      <td>${escapeHtml(d.name)}</td>
+      <td>${escapeHtml(d.category)}</td>
+      <td>${d.price.toLocaleString('ru-RU')}</td>
+      <td>${d.cost.toLocaleString('ru-RU')}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openDishModal(${d.id})">Изменить</button>
+        <button class="btn btn-danger btn-sm" onclick="removeDish(${d.id})">Удалить</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+let modalMode = null; // { type, id }
+
+function openDishModal(id){
+  modalMode = { type: 'dish', id: id || null };
+  const d = id ? DB.dishes.find(x => x.id === id) : { name:'', category:'', price:'', cost:'' };
+  document.getElementById('modal-title').textContent = id ? 'Редактирование блюда' : 'Новое блюдо';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-group"><label>Название</label><input id="m-name" value="${escapeAttr(d.name)}" /></div>
+    <div class="form-group"><label>Категория</label><input id="m-category" value="${escapeAttr(d.category)}" /></div>
+    <div class="form-group"><label>Цена, ₽</label><input id="m-price" type="number" min="0" value="${d.price}" /></div>
+    <div class="form-group"><label>Себестоимость, ₽</label><input id="m-cost" type="number" min="0" value="${d.cost}" /></div>
+  `;
+  openModal();
+}
+
+function saveDish(){
+  const name = document.getElementById('m-name').value.trim();
+  const category = document.getElementById('m-category').value.trim();
+  const price = Number(document.getElementById('m-price').value);
+  const cost = Number(document.getElementById('m-cost').value);
+  if (!name || !category || price < 0 || cost < 0){
+    alert('Заполните все поля корректно.');
+    return false;
+  }
+  if (modalMode.id){
+    const d = DB.dishes.find(x => x.id === modalMode.id);
+    Object.assign(d, { name, category, price, cost });
+  } else {
+    const newId = DB.dishes.length ? Math.max(...DB.dishes.map(x => x.id)) + 1 : 1;
+    DB.dishes.push({ id: newId, name, category, price, cost });
+  }
+  saveDB(DB);
+  renderDishes();
+  return true;
+}
+
+function removeDish(id){
+  if (!confirm('Удалить блюдо из справочника?')) return;
+  DB.dishes = DB.dishes.filter(d => d.id !== id);
+  saveDB(DB);
+  renderDishes();
+}
+
+/* =========================================================
+   СПРАВОЧНИК ИНГРЕДИЕНТОВ
+   ========================================================= */
+function renderIngredients(){
+  const tbody = document.getElementById('ingredients-tbody');
+  if (!DB.ingredients.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Справочник пуст</td></tr>';
+    return;
+  }
+  tbody.innerHTML = DB.ingredients.map(i => `
+    <tr>
+      <td>${i.id}</td>
+      <td>${escapeHtml(i.name)}</td>
+      <td>${escapeHtml(i.unit)}</td>
+      <td>${i.price.toLocaleString('ru-RU')}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openIngredientModal(${i.id})">Изменить</button>
+        <button class="btn btn-danger btn-sm" onclick="removeIngredient(${i.id})">Удалить</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openIngredientModal(id){
+  modalMode = { type: 'ingredient', id: id || null };
+  const it = id ? DB.ingredients.find(x => x.id === id) : { name:'', unit:'', price:'' };
+  document.getElementById('modal-title').textContent = id ? 'Редактирование ингредиента' : 'Новый ингредиент';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-group"><label>Название</label><input id="m-name" value="${escapeAttr(it.name)}" /></div>
+    <div class="form-group"><label>Ед. изм.</label><input id="m-unit" value="${escapeAttr(it.unit)}" placeholder="кг, л, шт" /></div>
+    <div class="form-group"><label>Цена за ед., ₽</label><input id="m-price" type="number" min="0" value="${it.price}" /></div>
+  `;
+  openModal();
+}
+
+function saveIngredient(){
+  const name = document.getElementById('m-name').value.trim();
+  const unit = document.getElementById('m-unit').value.trim();
+  const price = Number(document.getElementById('m-price').value);
+  if (!name || !unit || price < 0){
+    alert('Заполните все поля корректно.');
+    return false;
+  }
+  if (modalMode.id){
+    const it = DB.ingredients.find(x => x.id === modalMode.id);
+    Object.assign(it, { name, unit, price });
+  } else {
+    const newId = DB.ingredients.length ? Math.max(...DB.ingredients.map(x => x.id)) + 1 : 1;
+    DB.ingredients.push({ id: newId, name, unit, price });
+  }
+  saveDB(DB);
+  renderIngredients();
+  return true;
+}
+
+function removeIngredient(id){
+  if (!confirm('Удалить ингредиент?')) return;
+  DB.ingredients = DB.ingredients.filter(i => i.id !== id);
+  saveDB(DB);
+  renderIngredients();
+}
+
+/* =========================================================
+   СОТРУДНИКИ
+   ========================================================= */
+function renderStaff(){
+  const tbody = document.getElementById('staff-tbody');
+  if (!DB.staff.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Список пуст</td></tr>';
+    return;
+  }
+  tbody.innerHTML = DB.staff.map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${escapeHtml(s.fio)}</td>
+      <td>${escapeHtml(s.position)}</td>
+      <td>${s.orders}</td>
+      <td>${s.efficiency}%</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="openStaffModal(${s.id})">Изменить</button>
+        <button class="btn btn-danger btn-sm" onclick="removeStaff(${s.id})">Удалить</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openStaffModal(id){
+  modalMode = { type: 'staff', id: id || null };
+  const s = id ? DB.staff.find(x => x.id === id) : { fio:'', position:'', orders:'', efficiency:'' };
+  document.getElementById('modal-title').textContent = id ? 'Редактирование сотрудника' : 'Новый сотрудник';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-group"><label>ФИО</label><input id="m-fio" value="${escapeAttr(s.fio)}" /></div>
+    <div class="form-group"><label>Должность</label><input id="m-position" value="${escapeAttr(s.position)}" /></div>
+    <div class="form-group"><label>Заказов</label><input id="m-orders" type="number" min="0" value="${s.orders}" /></div>
+    <div class="form-group"><label>Эффективность, %</label><input id="m-eff" type="number" min="0" max="100" value="${s.efficiency}" /></div>
+  `;
+  openModal();
+}
+
+function saveStaff(){
+  const fio = document.getElementById('m-fio').value.trim();
+  const position = document.getElementById('m-position').value.trim();
+  const orders = Number(document.getElementById('m-orders').value);
+  const efficiency = Number(document.getElementById('m-eff').value);
+  if (!fio || !position || orders < 0 || efficiency < 0 || efficiency > 100){
+    alert('Заполните все поля корректно.');
+    return false;
+  }
+  if (modalMode.id){
+    const s = DB.staff.find(x => x.id === modalMode.id);
+    Object.assign(s, { fio, position, orders, efficiency });
+  } else {
+    const newId = DB.staff.length ? Math.max(...DB.staff.map(x => x.id)) + 1 : 1;
+    DB.staff.push({ id: newId, fio, position, orders, efficiency });
+  }
+  saveDB(DB);
+  renderStaff();
+  return true;
+}
+
+function removeStaff(id){
+  if (!confirm('Удалить сотрудника?')) return;
+  DB.staff = DB.staff.filter(s => s.id !== id);
+  saveDB(DB);
+  renderStaff();
+}
+
+/* =========================================================
+   ТАРИФЫ И СКИДКИ
+   ========================================================= */
+function renderDiscounts(){
+  const tbody = document.getElementById('discounts-tbody');
+  if (!DB.discounts.length){
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Список пуст</td></tr>';
+    return;
+  }
+  tbody.innerHTML = DB.discounts.map(d => `
+    <tr>
+      <td>${d.id}</td>
+      <td>${escapeHtml(d.name)}</td>
+      <td>${d.type === 'percent' ? 'Процент' : 'Фиксированная'}</td>
+      <td>${d.type === 'percent' ? d.value + '%' : d.value + ' ₽'}</td>
+      <td>${d.active ? 'Да' : 'Нет'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="toggleDiscount(${d.id})">${d.active ? 'Выключить' : 'Включить'}</button>
+        <button class="btn btn-danger btn-sm" onclick="removeDiscount(${d.id})">Удалить</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openDiscountModal(){
+  modalMode = { type: 'discount', id: null };
+  document.getElementById('modal-title').textContent = 'Новая скидка';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-group"><label>Название</label><input id="m-name" /></div>
+    <div class="form-group">
+      <label>Тип</label>
+      <select id="m-type">
+        <option value="percent">Процент</option>
+        <option value="fixed">Фиксированная сумма</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Значение</label><input id="m-value" type="number" min="0" /></div>
+    <div class="checkbox-row">
+      <input id="m-active" type="checkbox" checked />
+      <label for="m-active">Активна</label>
+    </div>
+  `;
+  openModal();
+}
+
+function saveDiscount(){
+  const name = document.getElementById('m-name').value.trim();
+  const type = document.getElementById('m-type').value;
+  const value = Number(document.getElementById('m-value').value);
+  const active = document.getElementById('m-active').checked;
+  if (!name || value < 0){
+    alert('Заполните все поля корректно.');
+    return false;
+  }
+  const newId = DB.discounts.length ? Math.max(...DB.discounts.map(x => x.id)) + 1 : 1;
+  DB.discounts.push({ id: newId, name, type, value, active });
+  saveDB(DB);
+  renderDiscounts();
+  return true;
+}
+
+function toggleDiscount(id){
+  const d = DB.discounts.find(x => x.id === id);
+  d.active = !d.active;
+  saveDB(DB);
+  renderDiscounts();
+}
+
+function removeDiscount(id){
+  if (!confirm('Удалить скидку?')) return;
+  DB.discounts = DB.discounts.filter(d => d.id !== id);
+  saveDB(DB);
+  renderDiscounts();
+}
+
+/* =========================================================
+   МОДАЛЬНОЕ ОКНО
+   ========================================================= */
+function openModal(){
+  document.getElementById('modal-backdrop').classList.remove('hidden');
+}
+function closeModal(){
+  document.getElementById('modal-backdrop').classList.add('hidden');
+  modalMode = null;
+}
+function saveModal(){
+  let ok = false;
+  if (!modalMode) return closeModal();
+  if (modalMode.type === 'dish') ok = saveDish();
+  if (modalMode.type === 'ingredient') ok = saveIngredient();
+  if (modalMode.type === 'staff') ok = saveStaff();
+  if (modalMode.type === 'discount') ok = saveDiscount();
+  if (ok !== false) closeModal();
+}
+document.getElementById('modal-backdrop').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-backdrop') closeModal();
+});
+
+/* =========================================================
+   УТИЛИТЫ
+   ========================================================= */
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(str){ return escapeHtml(str); }
+
+/* =========================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ========================================================= */
+(function init(){
+  const remembered = localStorage.getItem('ck_remember');
+  if (remembered){
+    document.getElementById('login-user').value = remembered;
+    document.getElementById('login-remember').checked = true;
+  }
+  showPage('login');
+})();
+</script>
+</body>
+</html>
