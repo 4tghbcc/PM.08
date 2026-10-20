@@ -1,0 +1,22 @@
+:root{
+  --bg:#1e1e1e;
+  --panel:#2a2a2a;
+  --panel2:#333;
+  --text:#eee;
+  --muted:#9aa0a6;
+  --accent:#f2c94c;
+  --accent-hover:#e0b83a;
+  --danger:#e74c3c;
+  --border:#3d3d3d;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Segoe UI',Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+}
+.hidden{display:none !important;}
+a{color:var(--accent);}
+h1,h2,h3{font-weight:700;}
